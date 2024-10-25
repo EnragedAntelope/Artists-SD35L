@@ -9,6 +9,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f5f5f5;
         }
         .gallery {
             display: grid;
@@ -20,6 +21,11 @@
             padding: 10px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         .gallery-item img {
             width: 100%;
@@ -67,7 +73,7 @@
                 'DiegoRivera', 'DiegoVelazquez', 'EdgarDegas', 'EdouardManet', 'EdwardHopper',
                 'ElGreco', 'Escher', 'EugeneDelacroix', 'FrancisBacon', 'FranciscoGoya',
                 'FrankFrazetta', 'FrankLloydWright', 'FridaKahlo', 'GeorgesSeurat',
-                'GeorgiaOKeeffe', 'GiovanniBattistaTiepolo', 'GrantWood', 'GregRutkowski',
+                "GeorgiaO'Keeffe", 'GiovanniBattistaTiepolo', 'GrantWood', 'GregRutkowski',
                 'GustaveDore', 'GustaveMoreau', 'GustavKlimt', 'HayaoMiyazaki',
                 'HenriCartierBresson', 'HenrideToulouseLautrec', 'HenriMatisse', 'HenriRousseau',
                 'HenryMoore', 'HieronymusBosch', 'Hokusai', 'HRGiger', 'JacksonPollock',
@@ -90,8 +96,11 @@
 
             for (const artist of artists) {
                 try {
+                    // Remove apostrophes for file names
+                    const fileName = artist.replace(/'/g, '');
+                    
                     // Fetch the prompt text
-                    const response = await fetch(`gallery-assets/${artist}.txt`);
+                    const response = await fetch(`gallery-assets/${fileName}.txt`);
                     const prompt = await response.text();
 
                     // Create gallery item
@@ -100,7 +109,7 @@
                     
                     // Set the HTML content
                     item.innerHTML = `
-                        <img src="gallery-assets/${artist}.png" alt="${formatDisplayName(artist)}">
+                        <img src="gallery-assets/${fileName}.png" alt="${formatDisplayName(artist)}">
                         <div class="artist-name">${formatDisplayName(artist)}</div>
                         <div class="prompt">${prompt.trim()}</div>
                     `;
