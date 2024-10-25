@@ -1,87 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- [Previous head section remains the same] -->
-
-<script>
-    async function fetchPrompt(artist) {
-        try {
-            // Handle special characters in the file name
-            const fileName = artist.replace(/'/g, ''); // Remove apostrophes for file access
-            const response = await fetch(`gallery-assets/${fileName}.txt`);
-            if (!response.ok) throw new Error('Failed to fetch prompt');
-            const text = await response.text();
-            return text.trim();
-        } catch (error) {
-            console.error(`Error loading prompt for ${artist}:`, error);
-            return 'Prompt not available';
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SD3.5L Artist Gallery</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
         }
-    }
-
-    async function loadGallery() {
-        const gallery = document.getElementById('imageGallery');
-        
-        // List of artists with correct file names
-        const artists = [
-            'AgnesLawrencePelton', 'AkihikoYoshida', 'AlbertoGiacometti', 'AlbrechtDurer',
-            'AlexanderCalder', 'AlexGrey', 'AlexRoss', 'AlfredSisley', 'AlphonseMucha',
-            'AndyWarhol', 'AnnibaleCarracci', 'ArtemisiaGentileschi', 'AugusteRenoir',
-            'Banksy', 'Basquiat', 'BeatrixPotter', 'BernieWrightson', 'BillWatterson',
-            'BobRoss', 'Botticelli', 'Canaletto', 'Caravaggio', 'CharlesMSchulz',
-            'ChuckClose', 'ClaudeLorrain', 'ClaudeMonet', 'DaveMcKean', 'DavidHockney',
-            'DiegoRivera', 'DiegoVelazquez', 'EdgarDegas', 'EdouardManet', 'EdwardHopper',
-            'ElGreco', 'Escher', 'EugeneDelacroix', 'FrancisBacon', 'FranciscoGoya',
-            'FrankFrazetta', 'FrankLloydWright', 'FridaKahlo', 'GeorgesSeurat',
-            'GeorgiaO\'Keeffe', 'GiovanniBattistaTiepolo', 'GrantWood', 'GregRutkowski',
-            'GustaveDore', 'GustaveMoreau', 'GustavKlimt', 'HayaoMiyazaki',
-            'HenriCartierBresson', 'HenrideToulouseLautrec', 'HenriMatisse', 'HenriRousseau',
-            'HenryMoore', 'HieronymusBosch', 'Hokusai', 'HRGiger', 'JacksonPollock',
-            'JamesGurney', 'JamesJean', 'JamieHewlett', 'JeffKoons', 'JohannesVermeer',
-            'JohnConstable', 'JohnSingerSargent', 'JosephTurner', 'KeithHaring',
-            'LeonardodaVinci', 'LeonoraCarrington', 'LucianFreud', 'MarcChagall',
-            'MarcelDuchamp', 'MarkRothko', 'MaxErnst', 'Michelangelo', 'Moebius',
-            'NormanRockwell', 'PabloPicasso', 'PaulCezanne', 'PaulGauguin', 'PaulKlee',
-            'PeterPaulRubens', 'PhilipKDick', 'PieterBruegel', 'PietMondrian', 'Raphael',
-            'Rembrandt', 'ReneMagritte', 'RichardDadd', 'RobertCrumb', 'RobertMcCall',
-            'RogerDean', 'RoyLichtenstein', 'SalvadorDali', 'SandroBotticelli',
-            'SimonStalenhag', 'StanLee', 'StanleyDonwood', 'StudioGhibli', 'SydMead',
-            'TakashiMurakami', 'TedNasmith', 'ThomasCole', 'ThomasKinkade', 'TimBurton',
-            'Titian', 'TomofFinland', 'UtagawaHiroshige', 'VanEyck', 'VanGogh', 'Vermeer',
-            'VictoNgai', 'VincentDiFate', 'WallyWood', 'WaltDisney', 'WalterCrane',
-            'WassilyKandinsky', 'WayneBarlowe', 'WayneThiebaud', 'WilliamBlake',
-            'WilliamHogarth', 'WilliamMorris', 'WilliamTurner', 'WinslowHomer',
-            'YayoiKusama', 'YojiShinkawa', 'YoshitakaAmano', 'ZdzislawBeksinski'
-        ];
-
-        // Create and append gallery items
-        for (const artist of artists) {
-            const prompt = await fetchPrompt(artist);
-            
-            const item = document.createElement('div');
-            item.className = 'gallery-item';
-            
-            // Format the artist name for display with special character handling
-            const displayName = artist
-                .replace(/'/g, ''') // Replace straight apostrophes with curly ones for display
-                .replace(/([A-Z])/g, ' $1')
-                .replace(/^./, str => str.toUpperCase())
-                .trim();
-
-            // Handle file names without apostrophes for images
-            const fileName = artist.replace(/'/g, '');
-            
-            item.innerHTML = `
-                <img src="gallery-assets/${fileName}.png" alt="${displayName}" loading="lazy">
-                <div class="caption">
-                    <div class="artist-name">${displayName}</div>
-                    <div class="prompt">${prompt}</div>
-                </div>
-            `;
-            
-            gallery.appendChild(item);
+        .intro {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-    }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+        .gallery-item {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .gallery-item:hover {
+            transform: translateY(-5px);
+        }
+        .gallery-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .gallery-item .caption {
+            padding: 15px;
+        }
+        .gallery-item .artist-name {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .gallery-item .prompt {
+            font-style: italic;
+            font-size: 0.9em;
+            color: #666;
+        }
+        h1 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="intro">
+        <h1>SD3.5L Artist Gallery</h1>
+        <p>This gallery showcases how Stable Diffusion 3.5 Large interprets and generates images in the style of various artists. Each image demonstrates a unique artistic interpretation, accompanied by the prompt used to generate it.</p>
+        <p>The collection includes over 120 artists, ranging from Renaissance masters to contemporary creators. Each example demonstrates SD3.5L's capability to understand and apply different artistic styles and techniques.</p>
+    </div>
 
-    // Load gallery when page loads
-    window.addEventListener('load', loadGallery);
-</script>
+    <div id="imageGallery" class="gallery">
+        <!-- Gallery items will be dynamically loaded here -->
+    </div>
+
+    <script>
+        async function fetchPrompt(artist) {
+            try {
+                // Handle special characters in the file name
+                const fileName = artist.replace(/'/g, ''); // Remove apostrophes for file access
+                const response = await fetch(`gallery-assets/${fileName}.txt`);
+                if (!response.ok) throw new Error('Failed to fetch prompt');
+                const text = await response.text();
+                return text.trim();
+            } catch (error) {
+                console.error(`Error loading prompt for ${artist}:`, error);
+                return 'Prompt not available';
+            }
+        }
+
+        async function loadGallery() {
+            const gallery = document.getElementById('imageGallery');
+            
+            // List of artists with correct file names
+            const artists = [
+                'AgnesLawrencePelton', 'AkihikoYoshida', 'AlbertoGiacometti', 'AlbrechtDurer',
+                'AlexanderCalder', 'AlexGrey', 'AlexRoss', 'AlfredSisley', 'AlphonseMucha',
+                'AndyWarhol', 'AnnibaleCarracci', 'ArtemisiaGentileschi', 'AugusteRenoir',
+                'Banksy', 'Basquiat', 'BeatrixPotter', 'BernieWrightson', 'BillWatterson',
+                'BobRoss', 'Botticelli', 'Canaletto', 'Caravaggio', 'CharlesMSchulz',
+                'ChuckClose', 'ClaudeLorrain', 'ClaudeMonet', 'DaveMcKean', 'DavidHockney',
+                'DiegoRivera', 'DiegoVelazquez', 'EdgarDegas', 'EdouardManet', 'EdwardHopper',
+                'ElGreco', 'Escher', 'EugeneDelacroix', 'FrancisBacon', 'FranciscoGoya',
+                'FrankFrazetta', 'FrankLloydWright', 'FridaKahlo', 'GeorgesSeurat',
+                'GeorgiaO\'Keeffe', 'GiovanniBattistaTiepolo', 'GrantWood', 'GregRutkowski',
+                'GustaveDore', 'GustaveMoreau', 'GustavKlimt', 'HayaoMiyazaki',
+                'HenriCartierBresson', 'HenrideToulouseLautrec', 'HenriMatisse', 'HenriRousseau',
+                'HenryMoore', 'HieronymusBosch', 'Hokusai', 'HRGiger', 'JacksonPollock',
+                'JamesGurney', 'JamesJean', 'JamieHewlett', 'JeffKoons', 'JohannesVermeer',
+                'JohnConstable', 'JohnSingerSargent', 'JosephTurner', 'KeithHaring',
+                'LeonardodaVinci', 'LeonoraCarrington', 'LucianFreud', 'MarcChagall',
+                'MarcelDuchamp', 'MarkRothko', 'MaxErnst', 'Michelangelo', 'Moebius',
+                'NormanRockwell', 'PabloPicasso', 'PaulCezanne', 'PaulGauguin', 'PaulKlee',
+                'PeterPaulRubens', 'PhilipKDick', 'PieterBruegel', 'PietMondrian', 'Raphael',
+                'Rembrandt', 'ReneMagritte', 'RichardDadd', 'RobertCrumb', 'RobertMcCall',
+                'RogerDean', 'RoyLichtenstein', 'SalvadorDali', 'SandroBotticelli',
+                'SimonStalenhag', 'StanLee', 'StanleyDonwood', 'StudioGhibli', 'SydMead',
+                'TakashiMurakami', 'TedNasmith', 'ThomasCole', 'ThomasKinkade', 'TimBurton',
+                'Titian', 'TomofFinland', 'UtagawaHiroshige', 'VanEyck', 'VanGogh', 'Vermeer',
+                'VictoNgai', 'VincentDiFate', 'WallyWood', 'WaltDisney', 'WalterCrane',
+                'WassilyKandinsky', 'WayneBarlowe', 'WayneThiebaud', 'WilliamBlake',
+                'WilliamHogarth', 'WilliamMorris', 'WilliamTurner', 'WinslowHomer',
+                'YayoiKusama', 'YojiShinkawa', 'YoshitakaAmano', 'ZdzislawBeksinski'
+            ];
+
+            // Create and append gallery items
+            for (const artist of artists) {
+                const prompt = await fetchPrompt(artist);
+                
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                
+                // Format the artist name for display with special character handling
+                const displayName = artist
+                    .replace(/'/g, ''') // Replace straight apostrophes with curly ones for display
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())
+                    .trim();
+
+                // Handle file names without apostrophes for images
+                const fileName = artist.replace(/'/g, '');
+                
+                item.innerHTML = `
+                    <img src="gallery-assets/${fileName}.png" alt="${displayName}" loading="lazy">
+                    <div class="caption">
+                        <div class="artist-name">${displayName}</div>
+                        <div class="prompt">${prompt}</div>
+                    </div>
+                `;
+                
+                gallery.appendChild(item);
+            }
+        }
+
+        // Load gallery when page loads
+        window.addEventListener('load', loadGallery);
+    </script>
+</body>
 </html>
